@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export const AuthContext = createContext();
@@ -6,6 +6,50 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = useCallback(async () => {
+    const refresh = localStorage.getItem('refresh_token');
+
+    if (refresh) {
+      try {
+        await axios.post('http://localhost:8000/api/auth/logout/', {
+          refresh: refresh
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
+
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+  }, []);
+
+  const refreshToken = useCallback(async () => {
+    const refresh = localStorage.getItem('refresh_token');
+
+    if (!refresh) {
+      logout();
+      return false;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/auth/token/refresh/', {
+        refresh: refresh
+      });
+
+      const { access } = response.data;
+      localStorage.setItem('access_token', access);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      logout();
+      return false;
+    }
+  }, [logout]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -27,7 +71,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
-  }, []);
+  }, [refreshToken]);
 
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
@@ -53,32 +97,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, []);
-
-  const refreshToken = async () => {
-    const refresh = localStorage.getItem('refresh_token');
-
-    if (!refresh) {
-      logout();
-      return false;
-    }
-
-    try {
-      const response = await axios.post('http://localhost:8000/api/auth/token/refresh/', {
-        refresh: refresh
-      });
-
-      const { access } = response.data;
-      localStorage.setItem('access_token', access);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-
-      return true;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      logout();
-      return false;
-    }
-  };
+  }, [refreshToken]);
 
   const login = async (username, password) => {
     try {
@@ -129,25 +148,6 @@ export const AuthProvider = ({ children }) => {
         error: error.response?.data || 'Registration failed'
       };
     }
-  };
-
-  const logout = async () => {
-    const refresh = localStorage.getItem('refresh_token');
-
-    if (refresh) {
-      try {
-        await axios.post('http://localhost:8000/api/auth/logout/', {
-          refresh: refresh
-        });
-      } catch (error) {
-        console.error('Logout error:', error);
-      }
-    }
-
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
   };
 
   const toggleFavoriteTeam = async (teamId) => {
