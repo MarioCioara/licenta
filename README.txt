@@ -1,6 +1,6 @@
 Adresă repository git:
 
-https://github.com/MarioCioara/licentas
+https://github.com/MarioCioara/licenta
 
 Aplicația rulează la adresa https://rift-pulse.com
 
