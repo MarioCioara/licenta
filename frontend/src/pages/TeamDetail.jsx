@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
@@ -284,10 +284,10 @@ const TeamDetail = () => {
       setLoading(true);
       setError(null);
       try {
-        const teamRes = await axios.get(`http://localhost:8000/api/teams/${id}/`);
+        const teamRes = await api.get(`/api/teams/${id}/`);
         setTeam(teamRes.data);
 
-        const resultsRes = await axios.get(`http://localhost:8000/api/teams/${id}/tournament_results/`);
+        const resultsRes = await api.get(`/api/teams/${id}/tournament_results/`);
         setTournamentResults(resultsRes.data);
       } catch (err) {
         console.error('Error fetching team data:', err);

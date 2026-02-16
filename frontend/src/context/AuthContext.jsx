@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 
 export const AuthContext = createContext();
 
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     if (refresh) {
       try {
-        await axios.post('http://localhost:8000/api/auth/logout/', {
+        await api.post('/api/auth/logout/', {
           refresh: refresh
         });
       } catch (error) {
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    delete axios.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['Authorization'];
     setUser(null);
   }, []);
 
@@ -35,13 +35,13 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/token/refresh/', {
+      const response = await api.post('/api/auth/token/refresh/', {
         refresh: refresh
       });
 
       const { access } = response.data;
       localStorage.setItem('access_token', access);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
       return true;
     } catch (error) {
@@ -57,9 +57,9 @@ export const AuthProvider = ({ children }) => {
 
       if (token) {
         try {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-          const response = await axios.get('http://localhost:8000/api/auth/me/');
+          const response = await api.get('/api/auth/me/');
           setUser(response.data);
         } catch (error) {
           console.error('Failed to load user:', error);
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   }, [refreshToken]);
 
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
+    const interceptor = api.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
           if (refreshed) {
             const token = localStorage.getItem('access_token');
             originalRequest.headers['Authorization'] = `Bearer ${token}`;
-            return axios(originalRequest);
+            return api(originalRequest);
           }
         }
 
@@ -95,13 +95,13 @@ export const AuthProvider = ({ children }) => {
     );
 
     return () => {
-      axios.interceptors.response.eject(interceptor);
+      api.interceptors.response.eject(interceptor);
     };
   }, [refreshToken]);
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/login/', {
+      const response = await api.post('/api/auth/login/', {
         username,
         password
       });
@@ -110,9 +110,9 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-      const userResponse = await axios.get('http://localhost:8000/api/auth/me/');
+      const userResponse = await api.get('/api/auth/me/');
       setUser(userResponse.data);
 
       return { success: true };
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password, password2) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register/', {
+      const response = await api.post('/api/auth/register/', {
         username,
         email,
         password,
@@ -137,7 +137,7 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
       setUser(userData);
 
@@ -152,9 +152,9 @@ export const AuthProvider = ({ children }) => {
 
   const toggleFavoriteTeam = async (teamId) => {
     try {
-      const response = await axios.post(`http://localhost:8000/api/teams/${teamId}/favorite/`);
+      const response = await api.post(`/api/teams/${teamId}/favorite/`);
 
-      const userResponse = await axios.get('http://localhost:8000/api/auth/me/');
+      const userResponse = await api.get('/api/auth/me/');
       setUser(userResponse.data);
 
       return response.data;
@@ -166,9 +166,9 @@ export const AuthProvider = ({ children }) => {
 
   const toggleFavoriteMatch = async (matchId) => {
     try {
-      const response = await axios.post(`http://localhost:8000/api/matches/${matchId}/favorite/`);
+      const response = await api.post(`/api/matches/${matchId}/favorite/`);
 
-      const userResponse = await axios.get('http://localhost:8000/api/auth/me/');
+      const userResponse = await api.get('/api/auth/me/');
       setUser(userResponse.data);
 
       return response.data;
@@ -180,10 +180,10 @@ export const AuthProvider = ({ children }) => {
 
   const deleteAccount = async () => {
     try {
-      await axios.delete('http://localhost:8000/api/auth/delete-account/');
+      await api.delete('/api/auth/delete-account/');
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      delete axios.defaults.headers.common['Authorization'];
+      delete api.defaults.headers.common['Authorization'];
       setUser(null);
       return { success: true };
     } catch (error) {

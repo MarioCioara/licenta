@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../config/api';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -28,7 +28,7 @@ const Home = () => {
     const fetchUpcomingMatches = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:8000/api/matches/');
+        const response = await api.get('/api/matches/');
         const now = new Date();
 
         const upcoming = response.data
@@ -62,7 +62,7 @@ const Home = () => {
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/search/?q=${encodeURIComponent(searchQuery)}`);
+        const response = await api.get(`/api/search/?q=${encodeURIComponent(searchQuery)}`);
         setSearchResults(response.data);
         setShowSearchResults(true);
       } catch (err) {

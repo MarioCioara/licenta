@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useParams, Link } from 'react-router-dom';
 
 const formatDate = (dateStr) => {
@@ -351,13 +351,13 @@ const TournamentDetail = () => {
       setLoading(true);
       setError(null);
       try {
-        const tournamentRes = await axios.get(`http://localhost:8000/api/tournaments/${id}/`);
+        const tournamentRes = await api.get(`/api/tournaments/${id}/`);
         setTournament(tournamentRes.data);
 
-        const matchesRes = await axios.get(`http://localhost:8000/api/matches/?tournament=${id}`);
+        const matchesRes = await api.get(`/api/matches/?tournament=${id}`);
         setMatches(matchesRes.data);
 
-        const standingsRes = await axios.get(`http://localhost:8000/api/tournaments/${id}/standings/`);
+        const standingsRes = await api.get(`/api/tournaments/${id}/standings/`);
         setStandings(standingsRes.data);
       } catch (err) {
         console.error('Error fetching tournament data:', err);

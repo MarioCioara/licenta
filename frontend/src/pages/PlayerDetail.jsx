@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useParams, Link } from 'react-router-dom';
 
 const formatDate = (dateStr) => {
@@ -273,11 +273,11 @@ const PlayerDetail = () => {
       setLoading(true);
       setError(null);
       try {
-        const playerRes = await axios.get(`http://localhost:8000/api/players/${id}/`);
+        const playerRes = await api.get(`/api/players/${id}/`);
         setPlayer(playerRes.data);
 
         if (playerRes.data.team) {
-          const teamRes = await axios.get(`http://localhost:8000/api/teams/${playerRes.data.team}/`);
+          const teamRes = await api.get(`/api/teams/${playerRes.data.team}/`);
           setTeam(teamRes.data);
         }
       } catch (err) {

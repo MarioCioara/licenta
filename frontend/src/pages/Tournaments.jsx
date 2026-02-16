@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRegion } from '../context/RegionContext';
 
@@ -79,11 +79,11 @@ const Tournaments = () => {
       setLoading(true);
       setError(null);
       try {
-        let url = 'http://localhost:8000/api/tournaments/';
+        let url = '/api/tournaments/';
         if (currentRegion.code) {
           url += `?region=${currentRegion.code}`;
         }
-        const response = await axios.get(url);
+        const response = await api.get(url);
         setTournaments(response.data);
       } catch (err) {
         console.error('Error fetching tournaments:', err);

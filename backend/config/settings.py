@@ -1,19 +1,18 @@
 import os
-import ssl
-import smtplib
 from pathlib import Path
 from datetime import timedelta
-from django.core.mail.backends.smtp import EmailBackend as DefaultEmailBackend
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-g-8qdheddu$ld1!flgoyke#avfy6*3!+dn_9uad1=8!+2&e)0)'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-g-8qdheddu$ld1!flgoyke#avfy6*3!+dn_9uad1=8!+2&e)0)')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,13 +30,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -60,16 +60,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'esportsdb',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:admin@localhost:5432/esportsdb'
+    )
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -95,6 +89,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -104,14 +99,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # Keep for browsable API
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Default to open, protect specific views
+        'rest_framework.permissions.AllowAny',
     ],
 }
-
-
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -123,14 +116,14 @@ SIMPLE_JWT = {
 
 Q_CLUSTER = {
     'name': 'esports_notifications',
-    'workers': 2,
+    'workers': int(os.environ.get('Q_WORKERS', '2')),
     'recycle': 500,
     'timeout': 60,
     'retry': 120,
     'queue_limit': 50,
     'bulk': 10,
     'orm': 'default',
-    'sync': False,  # Set to True for testing
+    'sync': False,
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -138,57 +131,44 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'cioara.mario.razvan@gmail.com'
-EMAIL_HOST_PASSWORD = 'jdfz wqhk agtg vjic'
-DEFAULT_FROM_EMAIL = 'Rift Pulse <cioara.mario.razvan@gmail.com>'
-
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'cioara.mario.razvan@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'jdfz wqhk agtg vjic')
+DEFAULT_FROM_EMAIL = f'Rift Pulse <{EMAIL_HOST_USER}>'
 
 EMAIL_SSL_CERTFILE = None
 EMAIL_SSL_KEYFILE = None
 EMAIL_TIMEOUT = 10
 
-
-
-class CustomEmailBackend(DefaultEmailBackend):
-    def open(self):
-        if self.connection:
-            return False
-        connection_params = {}
-        if self.timeout is not None:
-            connection_params['timeout'] = self.timeout
-        try:
-            self.connection = smtplib.SMTP(self.host, self.port, **connection_params)
-            if self.use_tls:
-                self.connection.ehlo()
-                # Don't verify SSL certificates (development only)
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                self.connection.starttls(context=context)
-                self.connection.ehlo()
-            if self.username and self.password:
-                self.connection.login(self.username, self.password)
-            return True
-        except Exception:
-            if not self.fail_silently:
-                raise
-
-EMAIL_BACKEND = 'config.settings.CustomEmailBackend'
-
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:3000'
+).split(',')
 
 # Django Channels
 ASGI_APPLICATION = 'config.asgi.application'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
-}
+
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 # Lolesports API configuration
 LOLESPORTS_API = {
     'BASE_URL': 'https://esports-api.lolesports.com/persisted/gw/',
-    'API_KEY': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z',
+    'API_KEY': os.environ.get('LOLESPORTS_API_KEY', '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'),
     'MAX_RETRIES': 3,
 }
 
@@ -216,3 +196,14 @@ LOGGING = {
         },
     },
 }
+
+# Production security settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    CSRF_TRUSTED_ORIGINS = os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'https://rift-pulse.com,https://api.rift-pulse.com'
+    ).split(',')

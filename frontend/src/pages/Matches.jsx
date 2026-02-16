@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
@@ -70,7 +70,7 @@ const Matches = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get('http://localhost:8000/api/matches/');
+        const response = await api.get('/api/matches/');
         setMatches(response.data);
       } catch (err) {
         console.error('Error fetching matches:', err);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useNavigate } from 'react-router-dom';
 
 const Teams = () => {
@@ -15,7 +15,7 @@ const Teams = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get('http://localhost:8000/api/teams/');
+        const response = await api.get('/api/teams/');
         setTeams(response.data);
       } catch (err) {
         console.error('Error fetching teams:', err);

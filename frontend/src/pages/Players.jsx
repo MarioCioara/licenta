@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../config/api';
 import { useNavigate } from 'react-router-dom';
 
 const Players = () => {
@@ -16,7 +16,7 @@ const Players = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get('http://localhost:8000/api/players/');
+        const response = await api.get('/api/players/');
         setPlayers(response.data);
       } catch (err) {
         console.error('Error fetching players:', err);

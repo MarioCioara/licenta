@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../config/api';
 
 const Profile = () => {
   const { user, isAuthenticated, loading, toggleFavoriteTeam, toggleFavoriteMatch, deleteAccount } = useContext(AuthContext);
@@ -23,13 +23,13 @@ const Profile = () => {
 
       try {
         const teamsPromises = user.favorite_teams.map(teamId =>
-          axios.get(`http://localhost:8000/api/teams/${teamId}/`)
+          api.get(`/api/teams/${teamId}/`)
         );
         const teamsResponses = await Promise.all(teamsPromises);
         setFavoriteTeams(teamsResponses.map(res => res.data));
 
         const matchesPromises = user.favorite_matches.map(matchId =>
-          axios.get(`http://localhost:8000/api/matches/${matchId}/`)
+          api.get(`/api/matches/${matchId}/`)
         );
         const matchesResponses = await Promise.all(matchesPromises);
         setFavoriteMatches(matchesResponses.map(res => res.data));
