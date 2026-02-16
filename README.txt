@@ -1,3 +1,8 @@
+Adresă repository git:
+
+https://github.com/MarioCioara/licenta
+
+
 Instrucțiuni pentru instalarea și utilizarea aplicație Rift Pulse
 
 
