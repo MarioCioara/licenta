@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
@@ -7,32 +7,45 @@ const Navigation = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
+  const closeNav = () => setIsOpen(false);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container">
-        <Link className="navbar-brand" to="/">Rift Pulse</Link>
-        <div className="collapse navbar-collapse">
+        <Link className="navbar-brand" to="/" onClick={closeNav}>Rift Pulse</Link>
+        <button
+          className="navbar-toggler"
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-controls="navbarContent"
+          aria-expanded={isOpen}
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+        <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`} id="navbarContent">
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
-              <Link className="nav-link" to="/regions">Regions</Link>
+              <Link className="nav-link" to="/regions" onClick={closeNav}>Regions</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/teams">Teams</Link>
+              <Link className="nav-link" to="/teams" onClick={closeNav}>Teams</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/players">Players</Link>
+              <Link className="nav-link" to="/players" onClick={closeNav}>Players</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/tournaments">Tournaments</Link>
+              <Link className="nav-link" to="/tournaments" onClick={closeNav}>Tournaments</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/matches">Matches</Link>
+              <Link className="nav-link" to="/matches" onClick={closeNav}>Matches</Link>
             </li>
           </ul>
           <div className="d-flex align-items-center gap-2">
