@@ -1,5 +1,9 @@
-from pathlib import Path
 import os
+import ssl
+import smtplib
+from pathlib import Path
+from datetime import timedelta
+from django.core.mail.backends.smtp import EmailBackend as DefaultEmailBackend
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -107,7 +111,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-from datetime import timedelta
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -134,17 +138,16 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'razvan.mario95@gmail.com'
-EMAIL_HOST_PASSWORD = 'buop znqj ioxx mzfh'
-DEFAULT_FROM_EMAIL = 'Rift Pulse <razvan.mario95@gmail.com>'
+EMAIL_HOST_USER = 'cioara.mario.razvan@gmail.com'
+EMAIL_HOST_PASSWORD = 'jdfz wqhk agtg vjic'
+DEFAULT_FROM_EMAIL = 'Rift Pulse <cioara.mario.razvan@gmail.com>'
 
-import ssl
+
 EMAIL_SSL_CERTFILE = None
 EMAIL_SSL_KEYFILE = None
 EMAIL_TIMEOUT = 10
 
-import smtplib
-from django.core.mail.backends.smtp import EmailBackend as DefaultEmailBackend
+
 
 class CustomEmailBackend(DefaultEmailBackend):
     def open(self):
