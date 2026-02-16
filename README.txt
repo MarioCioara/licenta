@@ -53,3 +53,6 @@ python manage.py fetch_matches_now --schedules-only
 
 python manage.py fetch_matches_now --results-only
 
+python manage.py fix_match_regions
+
+python manage.py fix_missing_vods
