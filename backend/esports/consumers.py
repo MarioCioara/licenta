@@ -1,6 +1,6 @@
-from channels.generic.websocket import AsyncJsonConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
-class MatchUpdatesConsumer(AsyncJsonConsumer):
+class MatchUpdatesConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         await self.accept()
         await self.channel_layer.group_add("matches", self.channel_name)
