@@ -1,10 +1,10 @@
 import os
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.static import serve as static_serve
 from rest_framework import routers
 from . import views
 from django.contrib import admin
 from django.conf import settings
-from django.conf.urls.static import static
 
 admin.site.site_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 admin.site.site_header = 'Rift Pulse Administration'
@@ -24,4 +24,6 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}),
+]
