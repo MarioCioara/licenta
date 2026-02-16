@@ -111,18 +111,18 @@ class TeamViewSet(viewsets.ModelViewSet):
         return Response(results)
 
 class PlayerViewSet(viewsets.ModelViewSet):
-    queryset = Player.objects.all()
+    queryset = Player.objects.select_related('team').all()
     serializer_class = PlayerSerializer
 
     def get_queryset(self):
-        queryset = Player.objects.all()
+        queryset = Player.objects.select_related('team').all()
         region = self.request.query_params.get('region', None)
         if region:
             queryset = queryset.filter(team__region=region)
         return queryset
 
 class TournamentViewSet(viewsets.ModelViewSet):
-    queryset = Tournament.objects.all()
+    queryset = Tournament.objects.select_related('game').all()
     serializer_class = TournamentSerializer
 
     def get_serializer_class(self):
@@ -131,7 +131,7 @@ class TournamentViewSet(viewsets.ModelViewSet):
         return TournamentSerializer
 
     def get_queryset(self):
-        queryset = Tournament.objects.filter(
+        queryset = Tournament.objects.select_related('game').filter(
             game__name__icontains='league',
             start_date__year=2026
         )
@@ -151,6 +151,13 @@ class TournamentViewSet(viewsets.ModelViewSet):
 
         tournament_start = tournament.start_date if tournament.start_date else timezone.make_aware(datetime(2026, 1, 17))
 
+        all_matches = list(
+            Match.objects.filter(
+                tournament=tournament,
+                date_time__gte=tournament_start
+            ).select_related('team1', 'team2')
+        )
+
         if 'LPL' in tournament.name and '2026' in tournament.name and 'Split 1' in tournament.name:
             groups = {
                 'Group Ascend': ['Bilibili Gaming', "Anyone's Legend", 'Top Esports',
@@ -160,22 +167,22 @@ class TournamentViewSet(viewsets.ModelViewSet):
                 'Group Nirvana': ['LGD Gaming', 'LNG Esports', 'Oh My God', 'Ultra Prime']
             }
 
+            teams_by_name = {t.name: t for t in teams}
+
             all_group_standings = []
 
             for group_name, team_names in groups.items():
                 group_standings = []
 
                 for team_name in team_names:
-                    team = teams.filter(name=team_name).first()
+                    team = teams_by_name.get(team_name)
                     if not team:
                         continue
 
-                    team_matches = Match.objects.filter(
-                        tournament=tournament,
-                        date_time__gte=tournament_start
-                    ).filter(
-                        Q(team1=team) | Q(team2=team)
-                    )
+                    team_matches = [
+                        m for m in all_matches
+                        if m.team1_id == team.id or m.team2_id == team.id
+                    ]
 
                     wins = 0
                     losses = 0
@@ -231,12 +238,10 @@ class TournamentViewSet(viewsets.ModelViewSet):
 
         standings = []
         for team in teams:
-            team_matches = Match.objects.filter(
-                tournament=tournament,
-                date_time__gte=tournament_start
-            ).filter(
-                Q(team1=team) | Q(team2=team)
-            )
+            team_matches = [
+                m for m in all_matches
+                if m.team1_id == team.id or m.team2_id == team.id
+            ]
 
             wins = 0
             losses = 0
@@ -288,7 +293,9 @@ class MatchViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
 
-        queryset = Match.objects.exclude(
+        queryset = Match.objects.select_related(
+            'tournament', 'team1', 'team2'
+        ).exclude(
             Q(team1__isnull=True) | Q(team2__isnull=True) |
             Q(team1__name__iexact='TBD') | Q(team2__name__iexact='TBD') |
             Q(team1__name__iexact='To Be Determined') | Q(team2__name__iexact='To Be Determined')
