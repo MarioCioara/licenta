@@ -2,6 +2,8 @@ Adresă repository git:
 
 https://github.com/MarioCioara/licenta
 
+https://gitlab.upt.ro/mario.cioara/licenta/-/tree/main?ref_type=heads
+
 Aplicația rulează la adresa https://rift-pulse.com
 
 
