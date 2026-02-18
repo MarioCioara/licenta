@@ -7,7 +7,7 @@ https://gitlab.upt.ro/mario.cioara/licenta/-/tree/main?ref_type=heads
 Aplicația rulează la adresa https://rift-pulse.com
 
 
-Instrucțiuni pentru instalarea și utilizarea aplicație Rift Pulse
+Instrucțiuni pentru instalarea și utilizarea aplicație Rift Pulse local
 
 
 Sunt necesare următoarele programe:
